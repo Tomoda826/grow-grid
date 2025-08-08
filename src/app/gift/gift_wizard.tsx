@@ -1,0 +1,378 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+
+/* ---------- helper: generate 4-4 code ---------- */
+function generateCode(): string {
+  const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const chunk = () =>
+    Array.from({ length: 4 })
+      .map(() => alphabet[Math.floor(Math.random() * alphabet.length)])
+      .join("");
+  return `${chunk()}-${chunk()}`;
+}
+
+/* ---------- wizard steps ---------- */
+const steps = [
+  "giver",
+  "recipientAge",
+  "timeline",
+  "amount",
+  "message",
+  "layout",
+  "account",
+  "review",
+] as const;
+type Step = typeof steps[number];
+
+/* ---------- component ---------- */
+export default function GiftWizard() {
+  const router = useRouter();
+
+  /* check login state on mount */
+  const [alreadyLoggedIn, setAlreadyLoggedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setAlreadyLoggedIn(!!data.session);
+    });
+  }, []);
+
+  /* form state */
+  const [form, setForm] = useState({
+    giver: "",
+    recipientAge: "",
+    timelineAge: "",
+    amount: "",
+    message: "",
+    layout: "portrait",
+    email: "",
+    password: "",
+  });
+
+  /* ui state */
+  const [step, setStep] = useState<Step>("giver");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const update = (k: keyof typeof form, v: string) =>
+    setForm({ ...form, [k]: v });
+
+  /* ---------- place order (insert gift) ---------- */
+  async function placeOrder() {
+    setError("");
+    setSaving(true);
+
+    /* 1. unique code */
+    let code = generateCode();
+    while (true) {
+      const { data } = await supabase
+        .from("gifts")
+        .select("id")
+        .eq("code", code)
+        .maybeSingle();
+      if (!data) break;
+      code = generateCode();
+    }
+
+    /* 2. giver id */
+    const { data: userData } = await supabase.auth.getUser();
+    const giverId = userData.user!.id; // logged-in guaranteed by previous step
+
+    /* 3. insert */
+    const { error: dbErr } = await supabase.from("gifts").insert([
+      {
+        code,
+        giver_id: giverId,
+        layout: form.layout,
+        starter_amount: Number(form.amount) * 100,
+        goal_amount: 0, // placeholder if you track goals separately
+        goal_age: Number(form.timelineAge || "0"),
+        recipient_name: `Age ${form.recipientAge}`,
+      },
+    ]);
+
+    setSaving(false);
+
+    if (dbErr) {
+      setError(dbErr.message);
+      return;
+    }
+
+    /* 4. redirect */
+    router.push(`/order_success?code=${code}`);
+  }
+
+  /* ---------- per-step body ---------- */
+  let body: React.ReactElement | null = null;
+
+  switch (step) {
+    case "giver":
+      body = (
+        <>
+          <label className="text-sm font-medium">Your Name</label>
+          <Input
+            placeholder="e.g. Grandpa Jim"
+            value={form.giver}
+            onChange={(e) => update("giver", e.target.value)}
+          />
+          <Button
+            className="mt-4"
+            onClick={() => setStep("recipientAge")}
+            disabled={!form.giver}
+          >
+            Next
+          </Button>
+        </>
+      );
+      break;
+
+    case "recipientAge":
+      body = (
+        <>
+          <label className="text-sm font-medium">
+            How old is the recipient?
+          </label>
+          <Input
+            type="number"
+            min="0"
+            max="17"
+            placeholder="e.g. 4"
+            value={form.recipientAge}
+            onChange={(e) => update("recipientAge", e.target.value)}
+          />
+          <Button
+            className="mt-4"
+            onClick={() => setStep("timeline")}
+            disabled={!form.recipientAge}
+          >
+            Next
+          </Button>
+        </>
+      );
+      break;
+
+    case "timeline":
+      body = (
+        <>
+          <label className="text-sm font-medium">
+            At what age will they use the gift?
+          </label>
+          <Input
+            type="number"
+            min="5"
+            max="25"
+            placeholder="18"
+            value={form.timelineAge}
+            onChange={(e) => update("timelineAge", e.target.value)}
+          />
+          <Button
+            className="mt-4"
+            onClick={() => setStep("amount")}
+            disabled={!form.timelineAge}
+          >
+            Next
+          </Button>
+        </>
+      );
+      break;
+
+    case "amount":
+      body = (
+        <>
+          <label className="text-sm font-medium">Kick-start Amount (USD)</label>
+          <Input
+            type="number"
+            min="1"
+            placeholder="100"
+            value={form.amount}
+            onChange={(e) => update("amount", e.target.value)}
+          />
+          <Button
+            className="mt-4"
+            onClick={() => setStep("message")}
+            disabled={!form.amount}
+          >
+            Next
+          </Button>
+        </>
+      );
+      break;
+
+    case "message":
+      body = (
+        <>
+          <label className="text-sm font-medium">Personal Message</label>
+          <textarea
+            className="w-full h-24 rounded-md border p-2"
+            placeholder="Happy Birthday! Can't wait to see your grid fill up!"
+            value={form.message}
+            onChange={(e) => update("message", e.target.value)}
+          />
+          <Button
+            className="mt-4"
+            onClick={() => setStep("layout")}
+            disabled={!form.message}
+          >
+            Next
+          </Button>
+        </>
+      );
+      break;
+
+    case "layout":
+      body = (
+        <>
+          <label className="text-sm font-medium">Choose Board Layout</label>
+          <Select
+            value={form.layout}
+            onValueChange={(v) => update("layout", v)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="portrait">Portrait</SelectItem>
+              <SelectItem value="landscape">Landscape</SelectItem>
+              <SelectItem value="circular">Circular</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            className="mt-4"
+            onClick={() =>
+              setStep(
+                alreadyLoggedIn === true ? "review" : "account"
+              )
+            }
+          >
+            Next
+          </Button>
+        </>
+      );
+      break;
+
+    case "account":
+      body = (
+        <>
+          <label className="text-sm font-medium">Email</label>
+          <Input
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+          />
+          <label className="text-sm font-medium">Password</label>
+          <Input
+            type="password"
+            placeholder="••••••••"
+            value={form.password}
+            onChange={(e) => update("password", e.target.value)}
+          />
+
+          {error && <p className="text-destructive">{error}</p>}
+
+          <Button
+            className="mt-4"
+            onClick={async () => {
+              setError("");
+              const { error } = await supabase.auth.signUp({
+                email: form.email,
+                password: form.password,
+                options: { data: { full_name: form.giver } },
+              });
+              if (error) {
+                setError(error.message);
+                return;
+              }
+              const { error: signErr } =
+                await supabase.auth.signInWithPassword({
+                  email: form.email,
+                  password: form.password,
+                });
+              if (signErr) {
+                setError(signErr.message);
+                return;
+              }
+              setStep("review");
+            }}
+            disabled={!form.email || !form.password}
+          >
+            Create Account
+          </Button>
+        </>
+      );
+      break;
+
+    case "review":
+      body = (
+        <div className="space-y-4 text-sm">
+          <h3 className="font-semibold">Review Order</h3>
+          <ul className="space-y-1">
+            <li>
+              <strong>Giver:</strong> {form.giver}
+            </li>
+            <li>
+              <strong>Recipient Age:</strong> {form.recipientAge}
+            </li>
+            <li>
+              <strong>Use at Age:</strong> {form.timelineAge}
+            </li>
+            <li>
+              <strong>Amount:</strong> ${form.amount}
+            </li>
+            <li>
+              <strong>Layout:</strong> {form.layout}
+            </li>
+            <li>
+              <strong>Message:</strong> {form.message}
+            </li>
+          </ul>
+
+          {error && <p className="text-destructive">{error}</p>}
+
+          <Button
+            className="w-full"
+            onClick={placeOrder}
+            disabled={saving}
+          >
+            {saving ? "Placing…" : "Place Order"}
+          </Button>
+        </div>
+      );
+      break;
+  }
+
+  const progress = ((steps.indexOf(step) + 1) / steps.length) * 100;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-muted/50 py-10 px-4">
+      <Card className="w-full max-w-xl mx-auto shadow-sm">
+        <CardHeader>
+          <CardTitle>
+            Step {steps.indexOf(step) + 1} of {steps.length}
+          </CardTitle>
+        </CardHeader>
+        <Progress value={progress} className="mx-6" />
+        <CardContent className="space-y-6 py-8">{body}</CardContent>
+      </Card>
+    </div>
+  );
+}
