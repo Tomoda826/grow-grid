@@ -209,15 +209,32 @@ export default function GiftWizard() {
       break;
 
     case "amount":
+      // Format display value as currency
+      const formatCurrency = (value: string) => {
+        if (!value) return "";
+        const num = parseFloat(value.replace(/[^0-9.]/g, ""));
+        if (isNaN(num)) return "";
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(num);
+      };
+
+      const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+        update("amount", rawValue);
+      };
+
       body = (
         <>
           <label className="text-sm font-medium">Kick-start Amount (USD)</label>
           <Input
-            type="number"
-            min="1"
-            placeholder="100"
-            value={form.amount}
-            onChange={(e) => update("amount", e.target.value)}
+            type="text"
+            placeholder="$100"
+            value={form.amount ? formatCurrency(form.amount) : ""}
+            onChange={handleAmountChange}
           />
           <Button
             className="mt-4"
