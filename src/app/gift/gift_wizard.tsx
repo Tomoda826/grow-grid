@@ -48,6 +48,8 @@ type Step = typeof steps[number];
 export default function GiftWizard() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   /* check login state on mount */
   const [alreadyLoggedIn, setAlreadyLoggedIn] = useState<boolean | null>(null);
@@ -83,7 +85,10 @@ export default function GiftWizard() {
   /* auto-focus input when step changes */
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (inputRef.current) {
+      if (step === 'message' && textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.select();
+      } else if (inputRef.current) {
         inputRef.current.focus();
         inputRef.current.select();
       }
@@ -276,19 +281,6 @@ export default function GiftWizard() {
       break;
 
     case "message":
-      const textareaRef = useRef<HTMLTextAreaElement>(null);
-      
-      // Auto-focus textarea when step loads
-      useEffect(() => {
-        const timer = setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.focus();
-            textareaRef.current.select();
-          }
-        }, 100);
-        return () => clearTimeout(timer);
-      }, []);
-      
       body = (
         <>
           <label className="text-sm font-medium">Personal Message</label>
@@ -349,8 +341,6 @@ export default function GiftWizard() {
       break;
 
     case "account":
-      const passwordRef = useRef<HTMLInputElement>(null);
-      
       const handleAccountSubmit = async () => {
         setError("");
         
