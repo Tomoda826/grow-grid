@@ -1,9 +1,6 @@
 // src/app/layout.tsx
 import "./globals.css";
-import { Inter } from "next/font/google";
 import SiteHeader from "@/components/SiteHeader";
-
-const inter = Inter({ subsets: ["latin"] });
 
 /* ───── page-wide metadata ───── */
 export const metadata = {
@@ -26,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-sans">
         <SiteHeader />
         {children}
       </body>
