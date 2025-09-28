@@ -128,8 +128,8 @@ function OrderSuccessContent() {
           <QrCode size={16} />
           View Claim Instructions
         </Button>
-        <Button variant="ghost" onClick={() => router.push("/dashboard")}>
-          Go to Dashboard
+        <Button variant="ghost" onClick={() => router.push("/claim")}>
+          Claim Grid for Yourself
         </Button>
       </div>
     </div>
