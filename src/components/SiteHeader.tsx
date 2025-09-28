@@ -13,6 +13,12 @@ export default function SiteHeader() {
 
   /* watch session */
   useEffect(() => {
+    // If supabase is not configured, just set loading to false
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setLoggedIn(!!data.session);
       setLoading(false);
@@ -28,6 +34,7 @@ export default function SiteHeader() {
   }, []);
 
   async function handleLogout() {
+    if (!supabase) return;
     await supabase.auth.signOut();
     router.push("/login");
   }
