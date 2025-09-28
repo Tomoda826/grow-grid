@@ -247,13 +247,6 @@ export default function ClaimGridPage() {
   if (step === "code") {
     body = (
       <div className="relative flex flex-col items-center gap-6">
-        <Confetti
-          width={300}
-          height={200}
-          numberOfPieces={120}
-          recycle={false}
-          className="absolute inset-0 pointer-events-none"
-        />
         <h2 className="text-2xl font-bold text-center leading-tight">
           You’ve Been Gifted a&nbsp;Grow&nbsp;Grid! 🎁
         </h2>
@@ -268,21 +261,25 @@ export default function ClaimGridPage() {
           placeholder="ABCD-1234"
           className="text-center text-lg tracking-widest"
           value={code}
+          maxLength={9}
           onChange={(e) => {
-            // Remove any non-alphanumeric characters and convert to uppercase
-            let value = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            const input = e.target.value;
             
-            // Limit to 8 characters
-            if (value.length > 8) {
-              value = value.substring(0, 8);
+            // Remove any existing dashes and non-alphanumeric characters, convert to uppercase
+            let clean = input.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            
+            // Limit to 8 alphanumeric characters
+            if (clean.length > 8) {
+              clean = clean.substring(0, 8);
             }
             
-            // Automatically add dash after 4th character
-            if (value.length > 4) {
-              value = value.substring(0, 4) + '-' + value.substring(4);
+            // Auto-format with dash after 4th character
+            let formatted = clean;
+            if (clean.length > 4) {
+              formatted = clean.substring(0, 4) + '-' + clean.substring(4);
             }
             
-            setCode(value);
+            setCode(formatted);
           }}
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
