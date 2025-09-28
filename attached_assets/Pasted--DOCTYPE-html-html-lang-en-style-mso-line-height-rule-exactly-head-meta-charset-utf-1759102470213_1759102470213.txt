@@ -1,0 +1,147 @@
+-<!DOCTYPE html>
+<html lang="en" style="mso-line-height-rule: exactly;">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>Claim your Grow Grid gift</title>
+  <meta name="color-scheme" content="light only" />
+  <style>
+    /* Clients ignore <style> often, so all critical styles are inlined below */
+    @media (max-width: 600px) {
+      .container { width: 100% !important; }
+      .p-24 { padding: 16px !important; }
+      .h1 { font-size: 24px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background:#f6f7f9;">
+  <!-- Preheader (hidden preview text) -->
+  <div style="display:none;font-size:1px;color:#f6f7f9;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Claim your Grow Grid gift from {{giver_name}}. Gift code: {{gift_code}}.
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7f9;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container" style="width:600px;max-width:600px;background:#ffffff;margin:24px;border-radius:10px;overflow:hidden;">
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding:20px 24px;background:#0ea5e9;">
+              <img src="{{logo_url}}" width="120" height="auto" alt="Grow Grid" style="display:block;border:0;outline:none;text-decoration:none;" />
+            </td>
+          </tr>
+
+          <!-- Hero / Title -->
+          <tr>
+            <td class="p-24" style="padding:24px 32px;">
+              <h1 class="h1" style="margin:0;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:28px;line-height:1.25;color:#0f172a;">
+                You’ve been gifted a Grow Grid
+              </h1>
+              <p style="margin:12px 0 0;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:16px;line-height:1.6;color:#334155;">
+                {{giver_name}} started an investment for {{child_name}}. Claim it now to see the pins on your grid and watch it grow over time.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Summary Card -->
+          <tr>
+            <td style="padding:0 32px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;">
+                <tr>
+                  <td style="padding:16px 18px;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
+                    <div style="font-size:14px;color:#64748b;margin-bottom:6px;">Gift Code</div>
+                    <div style="font-size:20px;color:#0f172a;font-weight:700;letter-spacing:1px;">{{gift_code}}</div>
+                    <div style="height:12px;"></div>
+                    <table width="100%" style="font-size:14px;color:#0f172a;">
+                      <tr>
+                        <td style="padding:6px 0;color:#334155;">From</td>
+                        <td align="right" style="padding:6px 0;color:#0f172a;font-weight:600;">{{giver_name}}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;color:#334155;">Starter Amount</td>
+                        <td align="right" style="padding:6px 0;color:#0f172a;font-weight:600;">{{starter_amount_formatted}}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;color:#334155;">Board Layout</td>
+                        <td align="right" style="padding:6px 0;color:#0f172a;font-weight:600;">{{layout}}</td>
+                      </tr>
+                      {{#if projected_value_formatted}}
+                      <tr>
+                        <td style="padding:6px 0;color:#334155;">Projected Value by Age {{target_age}}</td>
+                        <td align="right" style="padding:6px 0;color:#0f172a;font-weight:600;">{{projected_value_formatted}}</td>
+                      </tr>
+                      {{/if}}
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td class="p-24" align="center" style="padding:16px 32px 8px;">
+              <a href="{{claim_url}}"
+                 style="display:inline-block;background:#0ea5e9;color:#ffffff;text-decoration:none;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;padding:14px 22px;border-radius:8px;">
+                Claim your gift
+              </a>
+              <p style="margin:12px 0 0;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:1.6;color:#64748b;">
+                You’ll need a parent/guardian to create the account. It takes about 2 minutes.
+              </p>
+            </td>
+          </tr>
+
+          <!-- How it works -->
+          <tr>
+            <td class="p-24" style="padding:8px 32px 24px;">
+              <h3 style="margin:0 0 8px;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:16px;color:#0f172a;">How to claim</h3>
+              <ol style="margin:8px 0 0 18px;padding:0;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:1.8;color:#334155;">
+                <li>Click the button above or visit <strong>mygrowgrid.com/claim</strong>.</li>
+                <li>Enter your gift code <strong>{{gift_code}}</strong>.</li>
+                <li>Parent/guardian creates an account (email + password).</li>
+                <li>Enter the child’s birthday and choose a target age (we suggest 20–25 years).</li>
+                <li>See your starting pins and growth estimate instantly.</li>
+              </ol>
+            </td>
+          </tr>
+
+          <!-- Fallback link -->
+          <tr>
+            <td class="p-24" style="padding:0 32px 24px;">
+              <p style="margin:0;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:12px;color:#64748b;">
+                Trouble with the button? Copy and paste this link into your browser:<br />
+                <a href="{{claim_url}}" style="color:#0ea5e9;text-decoration:underline;word-break:break-all;">{{claim_url}}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:16px 24px;background:#f1f5f9;">
+              <p style="margin:0 0 6px;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:12px;color:#64748b;">
+                Need help? Email <a href="mailto:{{support_email}}" style="color:#0ea5e9;text-decoration:none;">{{support_email}}</a>
+              </p>
+              <p style="margin:0;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:12px;color:#94a3b8;">
+                {{company_name}} • {{company_address}}
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- small legal -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container" style="width:600px;max-width:600px;margin:0 24px;">
+          <tr>
+            <td align="center" style="padding:12px 8px;">
+              <p style="margin:0;font-family:Segoe UI, Roboto, Helvetica, Arial, sans-serif;font-size:11px;color:#94a3b8;line-height:1.6;">
+                You received this transactional email because a Grow Grid gift was created for you. If you didn’t expect this, please ignore this email or contact support.
+              </p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
