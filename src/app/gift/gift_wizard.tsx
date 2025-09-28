@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -47,6 +47,7 @@ type Step = typeof steps[number];
 /* ---------- component ---------- */
 export default function GiftWizard() {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   /* check login state on mount */
   const [alreadyLoggedIn, setAlreadyLoggedIn] = useState<boolean | null>(null);
@@ -79,8 +80,27 @@ export default function GiftWizard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  /* auto-focus input when step changes */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [step]);
+
   const update = (k: keyof typeof form, v: string) =>
     setForm({ ...form, [k]: v });
+
+  /* handle enter key press */
+  const handleKeyDown = (e: React.KeyboardEvent, nextAction: () => void, canProceed: boolean) => {
+    if (e.key === 'Enter' && canProceed) {
+      e.preventDefault();
+      nextAction();
+    }
+  };
 
   /* ---------- place order (insert gift) ---------- */
   async function placeOrder() {
@@ -143,9 +163,11 @@ export default function GiftWizard() {
         <>
           <label className="text-sm font-medium">Your Name</label>
           <Input
+            ref={inputRef}
             placeholder="e.g. Grandpa Jim"
             value={form.giver}
             onChange={(e) => update("giver", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, () => setStep("recipientAge"), !!form.giver)}
           />
           <Button
             className="mt-4"
@@ -165,12 +187,14 @@ export default function GiftWizard() {
             How old is the recipient?
           </label>
           <Input
+            ref={inputRef}
             type="number"
             min="0"
             max="17"
             placeholder="e.g. 4"
             value={form.recipientAge}
             onChange={(e) => update("recipientAge", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, () => setStep("timeline"), !!form.recipientAge)}
           />
           <Button
             className="mt-4"
@@ -190,12 +214,14 @@ export default function GiftWizard() {
             At what age will they use the gift?
           </label>
           <Input
+            ref={inputRef}
             type="number"
             min="5"
             max="25"
             placeholder="18"
             value={form.timelineAge}
             onChange={(e) => update("timelineAge", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, () => setStep("amount"), !!form.timelineAge)}
           />
           <Button
             className="mt-4"
@@ -231,10 +257,12 @@ export default function GiftWizard() {
         <>
           <label className="text-sm font-medium">Kick-start Amount (USD)</label>
           <Input
+            ref={inputRef}
             type="text"
             placeholder="$100"
             value={form.amount ? formatCurrency(form.amount) : ""}
             onChange={handleAmountChange}
+            onKeyDown={(e) => handleKeyDown(e, () => setStep("message"), !!form.amount)}
           />
           <Button
             className="mt-4"
@@ -248,14 +276,34 @@ export default function GiftWizard() {
       break;
 
     case "message":
+      const textareaRef = useRef<HTMLTextAreaElement>(null);
+      
+      // Auto-focus textarea when step loads
+      useEffect(() => {
+        const timer = setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+            textareaRef.current.select();
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }, []);
+      
       body = (
         <>
           <label className="text-sm font-medium">Personal Message</label>
           <textarea
+            ref={textareaRef}
             className="w-full h-24 rounded-md border p-2"
             placeholder="Happy Birthday! Can't wait to see your grid fill up!"
             value={form.message}
             onChange={(e) => update("message", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.ctrlKey && form.message) {
+                e.preventDefault();
+                setStep("layout");
+              }
+            }}
           />
           <Button
             className="mt-4"
@@ -264,6 +312,7 @@ export default function GiftWizard() {
           >
             Next
           </Button>
+          <p className="text-xs text-muted-foreground mt-1">Press Ctrl+Enter to continue</p>
         </>
       );
       break;
@@ -300,56 +349,69 @@ export default function GiftWizard() {
       break;
 
     case "account":
+      const passwordRef = useRef<HTMLInputElement>(null);
+      
+      const handleAccountSubmit = async () => {
+        setError("");
+        
+        // Check if supabase is configured
+        if (!supabase) {
+          setError("Authentication not configured. Please contact support.");
+          return;
+        }
+        
+        const { error } = await supabase.auth.signUp({
+          email: form.email,
+          password: form.password,
+          options: { data: { full_name: form.giver } },
+        });
+        if (error) {
+          setError(error.message);
+          return;
+        }
+        const { error: signErr } =
+          await supabase.auth.signInWithPassword({
+            email: form.email,
+            password: form.password,
+          });
+        if (signErr) {
+          setError(signErr.message);
+          return;
+        }
+        setStep("review");
+      };
+      
       body = (
         <>
           <label className="text-sm font-medium">Email</label>
           <Input
+            ref={inputRef}
             type="email"
             placeholder="you@example.com"
             value={form.email}
             onChange={(e) => update("email", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && form.email) {
+                e.preventDefault();
+                passwordRef.current?.focus();
+              }
+            }}
           />
           <label className="text-sm font-medium">Password</label>
           <Input
+            ref={passwordRef}
             type="password"
             placeholder="••••••••"
             value={form.password}
             onChange={(e) => update("password", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, handleAccountSubmit, !!(form.email && form.password))}
           />
 
           {error && <p className="text-destructive">{error}</p>}
 
           <Button
             className="mt-4"
-            onClick={async () => {
-              setError("");
-              
-              // Check if supabase is configured
-              if (!supabase) {
-                setError("Authentication not configured. Please contact support.");
-                return;
-              }
-              
-              const { error } = await supabase.auth.signUp({
-                email: form.email,
-                password: form.password,
-                options: { data: { full_name: form.giver } },
-              });
-              if (error) {
-                setError(error.message);
-                return;
-              }
-              const { error: signErr } =
-                await supabase.auth.signInWithPassword({
-                  email: form.email,
-                  password: form.password,
-                });
-              if (signErr) {
-                setError(signErr.message);
-                return;
-              }
-              setStep("review");
-            }}
+            onClick={handleAccountSubmit}
             disabled={!form.email || !form.password}
           >
             Create Account
