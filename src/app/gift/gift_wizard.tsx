@@ -131,9 +131,10 @@ export default function GiftWizard() {
       code = generateCode();
     }
 
-    /* 2. giver id */
+    /* 2. giver id and user data */
     const { data: userData } = await supabase.auth.getUser();
     const giverId = userData.user!.id; // logged-in guaranteed by previous step
+    const giverEmail = userData.user!.email || form.email;
 
     /* 3. insert */
     const { error: dbErr } = await supabase.from("gifts").insert([
@@ -148,14 +149,40 @@ export default function GiftWizard() {
       },
     ]);
 
-    setSaving(false);
-
     if (dbErr) {
+      setSaving(false);
       setError(dbErr.message);
       return;
     }
 
-    /* 4. redirect */
+    /* 4. send confirmation email */
+    try {
+      const emailResponse = await fetch('/api/send-confirmation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipientEmail: giverEmail,
+          recipientName: `Age ${form.recipientAge}`,
+          giftCode: code,
+          kickstartAmount: Number(form.amount) * 100,
+          boardLayout: form.layout,
+          giverName: form.giver
+        })
+      });
+
+      if (!emailResponse.ok) {
+        console.warn('Failed to send confirmation email, but order was successful');
+      }
+    } catch (emailError) {
+      console.warn('Email service error:', emailError);
+      // Don't fail the order if email fails
+    }
+
+    setSaving(false);
+
+    /* 5. redirect */
     router.push(`/order_success?code=${code}`);
   }
 
