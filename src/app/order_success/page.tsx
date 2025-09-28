@@ -11,7 +11,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Truck, QrCode } from "lucide-react";
+import { CheckCircle2, QrCode } from "lucide-react";
 import { motion } from "framer-motion";
 
 type GiftRow = {
@@ -119,10 +119,11 @@ function OrderSuccessContent() {
 
       {/* Actions */}
       <div className="mt-8 flex flex-col md:flex-row gap-4">
-        <Button variant="secondary" className="flex items-center gap-2">
+        {/* Track Shipment feature hidden for now */}
+        {/* <Button variant="secondary" className="flex items-center gap-2">
           <Truck size={16} />
           Track Shipment
-        </Button>
+        </Button> */}
         <Button className="flex items-center gap-2">
           <QrCode size={16} />
           View Claim Instructions
