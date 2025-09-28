@@ -461,15 +461,15 @@ export default function ClaimGridPage() {
   }
 
   /* ---------- render ---------- */
-  const progress = ((steps.indexOf(step) + 1) / steps.length) * 100;
+  const stepIndex = steps.indexOf(step);
+  const progress = ((stepIndex + 1) / steps.length) * 100;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/50 p-4">
       <Card className="w-full max-w-lg shadow-sm">
         <CardHeader>
           <CardTitle>
-            Claim Your Grow Grid – Step {steps.indexOf(step) + 1} of{" "}
-            {steps.length}
+            Claim Your Grow Grid – Step {stepIndex + 1} of {steps.length}
           </CardTitle>
         </CardHeader>
         <div className="px-6">
