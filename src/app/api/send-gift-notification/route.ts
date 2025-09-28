@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     const msg = {
       to: recipientEmail,
       from: 'noreply@mygrowgrid.com',
-      templateId: process.env.SENDGRID_GIFT_TEMPLATE_ID || 'your-template-id', // You'll need to add this env var
+      templateId: process.env.SENDGRID_GIFT_TEMPLATE_ID || 'd-d56b2e33d71845f1af2b9dae3897253f',
       dynamicTemplateData: templateData
     } as any; // Type assertion for SendGrid template
 
@@ -81,10 +81,11 @@ export async function POST(request: NextRequest) {
       message: 'Gift notification sent successfully' 
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('SendGrid Template Error:', error);
+    console.error('Error details:', error.response?.body || error.message);
     return NextResponse.json(
-      { error: 'Failed to send gift notification' },
+      { error: 'Failed to send gift notification', details: error.response?.body || error.message },
       { status: 500 }
     );
   }
