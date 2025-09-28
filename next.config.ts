@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable development optimizations
-  swcMinify: true,
   // Ensure proper handling of external requests
   async headers() {
     return [
