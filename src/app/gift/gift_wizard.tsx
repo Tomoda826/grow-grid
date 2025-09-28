@@ -389,8 +389,8 @@ export default function GiftWizard() {
           <CardTitle>
             Step {steps.indexOf(step) + 1} of {steps.length}
           </CardTitle>
+          <Progress value={progress} className="mt-4" />
         </CardHeader>
-        <Progress value={progress} className="mx-6" />
         <CardContent className="space-y-6 py-8">{body}</CardContent>
       </Card>
     </div>
