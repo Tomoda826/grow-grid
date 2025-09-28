@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-
 import Confetti from "react-confetti";
+
 import {
   Card,
   CardHeader,
@@ -45,11 +45,30 @@ export default function ClaimGridPage() {
 
   /* client-side mount check to prevent hydration errors */
   const [isMounted, setIsMounted] = useState(false);
+  
+  /* confetti celebration */
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowDimensions, setWindowDimensions] = useState({ width: 0, height: 0 });
 
   /* auth */
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   useEffect(() => {
     setIsMounted(true);
+    
+    // Set up confetti celebration on page load
+    if (typeof window !== 'undefined') {
+      setWindowDimensions({ 
+        width: window.innerWidth, 
+        height: window.innerHeight 
+      });
+      setShowConfetti(true);
+      
+      // Stop confetti after 4 seconds
+      setTimeout(() => {
+        setShowConfetti(false);
+      }, 4000);
+    }
+    
     if (supabase) {
       supabase.auth.getSession().then(({ data }) => {
         setLoggedIn(!!data.session);
@@ -474,6 +493,15 @@ export default function ClaimGridPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/50 p-4">
+      {showConfetti && (
+        <Confetti
+          width={windowDimensions.width}
+          height={windowDimensions.height}
+          numberOfPieces={100}
+          recycle={false}
+          colors={['#00c012', '#4ade80', '#22c55e', '#16a34a', '#15803d']}
+        />
+      )}
       <Card className="w-full max-w-lg shadow-sm">
         <CardHeader>
           <CardTitle>

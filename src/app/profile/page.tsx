@@ -39,6 +39,7 @@ export default function ProfilePage() {
   /* -------- fetch user on mount -------- */
   useEffect(() => {
     (async () => {
+      if (!supabase) return;
       const { data } = await supabase.auth.getUser();
       const user = data.user;
 
@@ -68,6 +69,7 @@ export default function ProfilePage() {
     setProfile({ ...profile, [key]: val });
 
   const saveProfile = async () => {
+    if (!supabase) return;
     setSaving(true);
     setError("");
 

@@ -38,6 +38,7 @@ localPort = 35993
 externalPort = 3000
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
 run = ["npm", "start"]
+publicDir = "public"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 import {
@@ -21,7 +21,7 @@ type GiftRow = {
   recipient_name: string;
 };
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
   const params = useSearchParams();
   const router = useRouter();
   const code = params.get("code");
@@ -39,6 +39,11 @@ export default function OrderSuccessPage() {
     }
 
     (async () => {
+      if (!supabase) {
+        setError("Database not configured.");
+        setLoading(false);
+        return;
+      }
       const { data, error } = await supabase
         .from("gifts")
         .select("code, layout, starter_amount, recipient_name")
@@ -127,6 +132,14 @@ export default function OrderSuccessPage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <OrderSuccessContent />
+    </Suspense>
   );
 }
 

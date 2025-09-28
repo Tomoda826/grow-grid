@@ -47,6 +47,10 @@ const { gridId } = useParams<{ gridId: string }>();
 
   useEffect(() => {
     (async () => {
+      if (!supabase) {
+        setGridExists(false);
+        return;
+      }
       const { data } = await supabase
         .from("grids")
         .select("id")
@@ -60,7 +64,7 @@ const { gridId } = useParams<{ gridId: string }>();
   if (gridExists === null) return <Center>Loading…</Center>;
 
   async function submit() {
-    if (!name || !amount) return;
+    if (!name || !amount || !supabase) return;
     setSending(true);
 
     const { error } = await supabase.rpc("add_gift_to_grid", {

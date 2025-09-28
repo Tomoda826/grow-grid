@@ -115,6 +115,7 @@ function Dashboard() {
   /* ---------------- Fetch once on mount ---------------- */
   useEffect(() => {
     (async () => {
+      if (!supabase) return;
       const uid = (await supabase.auth.getSession()).data.session?.user.id;
       if (!uid) return;
 

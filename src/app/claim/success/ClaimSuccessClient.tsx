@@ -63,7 +63,7 @@ export default function ClaimSuccessClient() {
   const [latestGiftAmount, setLatestGiftAmount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!gridId) return;
+    if (!gridId || !supabase) return;
 
     (async () => {
       const { data, error } = await supabase

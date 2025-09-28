@@ -100,6 +100,7 @@ export default function ManageSchedulePage() {
   /* ---------- fetch on mount ---------- */
   useEffect(() => {
     (async () => {
+      if (!supabase) return;
       const { data: session } = await supabase.auth.getSession();
       const uid = session.session?.user.id;
       if (!uid) {
@@ -137,7 +138,7 @@ export default function ManageSchedulePage() {
 
   /* ---------- actions ---------- */
   const saveNewSchedule = async () => {
-    if (!grid) return;
+    if (!grid || !supabase) return;
     setErr("");
 
     const amt = Number(form.amount);
@@ -184,6 +185,7 @@ export default function ManageSchedulePage() {
   };
 
   const toggleActive = async (row: ScheduleRow, val: boolean) => {
+    if (!supabase) return;
     await supabase
       .from("schedules")
       .update({ status: val ? "Active" : "Paused" })
@@ -196,6 +198,7 @@ export default function ManageSchedulePage() {
   };
 
   const removeRow = async (row: ScheduleRow) => {
+    if (!supabase) return;
     await supabase
       .from("schedules")
       .update({ status: "Deleted" })

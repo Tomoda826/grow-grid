@@ -15,6 +15,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // initial check
+    if (!supabase) {
+      router.replace(`/login?next=${pathname}`);
+      setChecking(false);
+      return;
+    }
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) router.replace(`/login?next=${pathname}`);
       setChecking(false);
