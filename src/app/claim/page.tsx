@@ -268,7 +268,22 @@ export default function ClaimGridPage() {
           placeholder="ABCD-1234"
           className="text-center text-lg tracking-widest"
           value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          onChange={(e) => {
+            // Remove any non-alphanumeric characters and convert to uppercase
+            let value = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            
+            // Limit to 8 characters
+            if (value.length > 8) {
+              value = value.substring(0, 8);
+            }
+            
+            // Automatically add dash after 4th character
+            if (value.length > 4) {
+              value = value.substring(0, 4) + '-' + value.substring(4);
+            }
+            
+            setCode(value);
+          }}
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <Button

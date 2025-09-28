@@ -33,9 +33,9 @@ Grow Grid is a Next.js application that helps families invest in a child's futur
 - ✅ Responsive design and animations
 
 ### Known Configuration Notes
-- Supabase integration is configured but made optional for development
-- Environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) can be added for full database functionality
-- TypeScript warnings exist in gift_wizard.tsx for enhanced null safety (non-blocking)
+- Supabase integration is fully configured and functional with environment variables
+- Automatic clam code formatting implemented: XXXX-XXXX format with auto-dash insertion
+- TypeScript warnings exist for enhanced null safety (non-blocking)
 
 ## User Preferences
 - Standard Next.js development workflow
