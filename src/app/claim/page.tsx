@@ -46,9 +46,13 @@ export default function ClaimGridPage() {
   /* auth */
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setLoggedIn(!!data.session);
-    });
+    if (supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        setLoggedIn(!!data.session);
+      });
+    } else {
+      setLoggedIn(false);
+    }
   }, []);
 
   /* state */
@@ -74,7 +78,7 @@ export default function ClaimGridPage() {
 
   /* --- fetch giver's profile name --- */
   async function fetchGiverName(uid: string | null) {
-    if (!uid) return setGiverName("Someone");
+    if (!uid || !supabase) return setGiverName("Someone");
     const { data } = await supabase
       .from("profiles")
       .select("full_name")
@@ -86,6 +90,7 @@ export default function ClaimGridPage() {
   /* --- code validation --- */
   async function handleValidateCode() {
     if (!code) return setError("Please enter your gift code.");
+    if (!supabase) return setError("Database not configured. Please contact support.");
     setLoading(true);
 
     const { data, error } = await supabase
@@ -112,6 +117,7 @@ export default function ClaimGridPage() {
   async function handleCreateAccount() {
     if (!acct.email || !acct.password || !acct.name)
       return setError("All account fields are required.");
+    if (!supabase) return setError("Database not configured. Please contact support.");
 
     setLoading(true);
     const { error: signErr } = await supabase.auth.signUp({
@@ -137,7 +143,7 @@ export default function ClaimGridPage() {
 
   /* --- finalize → success page --- */
   async function handleFinalizeGoal() {
-    if (!gift) return;
+    if (!gift || !supabase) return;
     setLoading(true);
 
     const { data: userData } = await supabase.auth.getUser();
