@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Confetti from "react-confetti";
 
@@ -42,6 +42,7 @@ type GiftRow = {
 /* ------------ component ------------ */
 export default function ClaimGridPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   /* client-side mount check to prevent hydration errors */
   const [isMounted, setIsMounted] = useState(false);
@@ -69,6 +70,17 @@ export default function ClaimGridPage() {
       }, 4000);
     }
     
+    // Auto-populate gift code from URL parameter
+    const urlCode = searchParams.get('code');
+    if (urlCode) {
+      // Format the code to XXXX-XXXX format
+      const clean = urlCode.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+      const formatted = clean.length > 4 ? 
+        clean.substring(0, 4) + '-' + clean.substring(4, 8) : 
+        clean;
+      setCode(formatted);
+    }
+    
     if (supabase) {
       supabase.auth.getSession().then(({ data }) => {
         setLoggedIn(!!data.session);
@@ -76,7 +88,7 @@ export default function ClaimGridPage() {
     } else {
       setLoggedIn(false);
     }
-  }, []);
+  }, [searchParams]);
 
   /* state */
   const [step, setStep] = useState<Step>("code");

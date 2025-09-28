@@ -99,8 +99,8 @@ function OrderSuccessContent() {
         Your Gift Is On Its Way!
       </h1>
       <p className="mt-2 text-muted-foreground text-center max-w-md">
-        We’ve emailed a confirmation. Your Grow Grid board will ship within
-        2&nbsp;business&nbsp;days.
+        We’ve emailed a confirmation. We will ship your gift once
+        the recipient confirms their details.
       </p>
 
       {/* Order Summary */}
@@ -128,7 +128,7 @@ function OrderSuccessContent() {
           <QrCode size={16} />
           View Claim Instructions
         </Button>
-        <Button variant="ghost" onClick={() => router.push("/claim")}>
+        <Button variant="ghost" onClick={() => router.push(`/claim?code=${gift!.code}`)}>
           Claim Grid for Yourself
         </Button>
       </div>
