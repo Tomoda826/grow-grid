@@ -51,6 +51,12 @@ export default function GiftWizard() {
   /* check login state on mount */
   const [alreadyLoggedIn, setAlreadyLoggedIn] = useState<boolean | null>(null);
   useEffect(() => {
+    // If supabase is not configured, set to false
+    if (!supabase) {
+      setAlreadyLoggedIn(false);
+      return;
+    }
+    
     supabase.auth.getSession().then(({ data }) => {
       setAlreadyLoggedIn(!!data.session);
     });
@@ -80,6 +86,13 @@ export default function GiftWizard() {
   async function placeOrder() {
     setError("");
     setSaving(true);
+
+    // Check if supabase is configured
+    if (!supabase) {
+      setError("Database not configured. Please contact support.");
+      setSaving(false);
+      return;
+    }
 
     /* 1. unique code */
     let code = generateCode();
@@ -293,6 +306,13 @@ export default function GiftWizard() {
             className="mt-4"
             onClick={async () => {
               setError("");
+              
+              // Check if supabase is configured
+              if (!supabase) {
+                setError("Authentication not configured. Please contact support.");
+                return;
+              }
+              
               const { error } = await supabase.auth.signUp({
                 email: form.email,
                 password: form.password,
