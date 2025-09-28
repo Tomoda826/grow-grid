@@ -39,6 +39,7 @@ const steps = [
   "amount",
   "message",
   "layout",
+  "recipient",
   "account",
   "review",
 ] as const;
@@ -73,6 +74,8 @@ export default function GiftWizard() {
     amount: "",
     message: "",
     layout: "portrait",
+    recipientEmail: "",
+    childName: "",
     email: "",
     password: "",
   });
@@ -155,7 +158,7 @@ export default function GiftWizard() {
       return;
     }
 
-    /* 4. send confirmation email */
+    /* 4. send confirmation email to giver */
     try {
       const emailResponse = await fetch('/api/send-confirmation-email', {
         method: 'POST',
@@ -180,9 +183,38 @@ export default function GiftWizard() {
       // Don't fail the order if email fails
     }
 
+    /* 5. send gift notification email to recipient */
+    if (form.recipientEmail && form.childName) {
+      try {
+        const giftEmailResponse = await fetch('/api/send-gift-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail: form.recipientEmail,
+            childName: form.childName,
+            giftCode: code,
+            starterAmount: Number(form.amount) * 100,
+            layout: form.layout,
+            giverName: form.giver,
+            targetAge: Number(form.timelineAge || "18"),
+            projectedValue: null // You can calculate this based on your investment logic
+          })
+        });
+
+        if (!giftEmailResponse.ok) {
+          console.warn('Failed to send gift notification, but order was successful');
+        }
+      } catch (giftEmailError) {
+        console.warn('Gift notification email error:', giftEmailError);
+        // Don't fail the order if email fails
+      }
+    }
+
     setSaving(false);
 
-    /* 5. redirect */
+    /* 6. redirect */
     router.push(`/order_success?code=${code}`);
   }
 
@@ -355,11 +387,46 @@ export default function GiftWizard() {
           </Select>
           <Button
             className="mt-4"
-            onClick={() =>
-              setStep(
-                alreadyLoggedIn === true ? "review" : "account"
-              )
-            }
+            onClick={() => setStep("recipient")}
+          >
+            Next
+          </Button>
+        </>
+      );
+      break;
+
+    case "recipient":
+      body = (
+        <>
+          <label className="text-sm font-medium">Child's Name</label>
+          <Input
+            ref={inputRef}
+            placeholder="e.g. Emma"
+            value={form.childName}
+            onChange={(e) => update("childName", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && form.childName) {
+                e.preventDefault();
+                const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+                if (emailInput) emailInput.focus();
+              }
+            }}
+          />
+          <label className="text-sm font-medium mt-4">Recipient's Email</label>
+          <Input
+            type="email"
+            placeholder="parent@example.com"
+            value={form.recipientEmail}
+            onChange={(e) => update("recipientEmail", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, () => setStep(alreadyLoggedIn === true ? "review" : "account"), !!(form.childName && form.recipientEmail))}
+          />
+          <p className="text-sm text-gray-600 mt-2">
+            We'll send gift details to this email so they can claim it.
+          </p>
+          <Button
+            className="mt-4"
+            onClick={() => setStep(alreadyLoggedIn === true ? "review" : "account")}
+            disabled={!(form.childName && form.recipientEmail)}
           >
             Next
           </Button>
