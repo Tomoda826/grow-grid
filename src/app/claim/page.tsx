@@ -472,7 +472,9 @@ export default function ClaimGridPage() {
             {steps.length}
           </CardTitle>
         </CardHeader>
-        <Progress value={progress} className="mx-6" />
+        <div className="px-6">
+          <Progress value={progress} />
+        </div>
         <CardContent className="space-y-6 py-8">{body}</CardContent>
       </Card>
     </div>
