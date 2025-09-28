@@ -53,6 +53,10 @@ export default function ClaimGridPage() {
 
   /* auth */
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  
+  // Get URL code parameter once to avoid re-render loop
+  const urlCode = searchParams.get('code');
+  
   useEffect(() => {
     setIsMounted(true);
     
@@ -70,8 +74,17 @@ export default function ClaimGridPage() {
       }, 4000);
     }
     
-    // Auto-populate gift code from URL parameter
-    const urlCode = searchParams.get('code');
+    if (supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        setLoggedIn(!!data.session);
+      });
+    } else {
+      setLoggedIn(false);
+    }
+  }, []);
+  
+  // Separate effect for auto-populating gift code from URL parameter
+  useEffect(() => {
     if (urlCode) {
       // Format the code to XXXX-XXXX format
       const clean = urlCode.replace(/[^A-Z0-9]/gi, '').toUpperCase();
@@ -80,15 +93,7 @@ export default function ClaimGridPage() {
         clean;
       setCode(formatted);
     }
-    
-    if (supabase) {
-      supabase.auth.getSession().then(({ data }) => {
-        setLoggedIn(!!data.session);
-      });
-    } else {
-      setLoggedIn(false);
-    }
-  }, [searchParams]);
+  }, [urlCode]);
 
   /* state */
   const [step, setStep] = useState<Step>("code");
