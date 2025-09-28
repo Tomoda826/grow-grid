@@ -43,9 +43,13 @@ type GiftRow = {
 export default function ClaimGridPage() {
   const router = useRouter();
 
+  /* client-side mount check to prevent hydration errors */
+  const [isMounted, setIsMounted] = useState(false);
+
   /* auth */
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   useEffect(() => {
+    setIsMounted(true);
     if (supabase) {
       supabase.auth.getSession().then(({ data }) => {
         setLoggedIn(!!data.session);
@@ -461,6 +465,10 @@ export default function ClaimGridPage() {
   }
 
   /* ---------- render ---------- */
+  if (!isMounted) {
+    return null; // Prevent hydration mismatch by not rendering until mounted
+  }
+
   const stepIndex = steps.indexOf(step);
   const progress = ((stepIndex + 1) / steps.length) * 100;
 
