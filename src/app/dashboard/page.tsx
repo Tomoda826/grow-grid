@@ -111,6 +111,14 @@ function Dashboard() {
   /* one-time contribution form */
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("card1");
+  
+  /* manual investments */
+  const [manualInvestments, setManualInvestments] = useState<{
+    id: string;
+    amount: number;
+    date: string;
+    estimatedValue: number;
+  }[]>([]);
 
   /* ---------------- Fetch once on mount ---------------- */
   useEffect(() => {
@@ -157,10 +165,11 @@ function Dashboard() {
   const calc = useMemo(() => {
     if (!grid) return null;
 
-    /* Initial dollars invested via gift + manual txns */
-    const principal =
-      txns.reduce((sum, t) => sum + t.amount_cents / 100, 0) ||
-      grid.current_balance / 100;
+    /* Initial dollars invested via gift + manual txns + manual investments */
+    const manualInvestTotal = manualInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+    const txnTotal = txns.reduce((sum, t) => sum + t.amount_cents / 100, 0);
+    const baseBalance = txnTotal > 0 ? txnTotal : grid.current_balance / 100;
+    const principal = baseBalance + manualInvestTotal;
 
     /* Elapsed time since grid creation */
     const elapsedYears =
@@ -244,7 +253,29 @@ function Dashboard() {
       earnedPins,
       interestPins,
     };
-  }, [grid, txns, schedules]);
+  }, [grid, txns, schedules, manualInvestments]);
+
+  /* ---------------- Handlers ---------------- */
+  const handleInvestNow = () => {
+    if (!amount || !grid) return;
+    
+    const investmentAmount = Number(amount);
+    if (isNaN(investmentAmount) || investmentAmount <= 0) return;
+    
+    // Calculate estimated value at goal date
+    const yearsToGoal = (grid.goal_age ?? 18);
+    const estimatedValue = investmentAmount * Math.pow(1 + ANNUAL, yearsToGoal);
+    
+    const newInvestment = {
+      id: `manual-${Date.now()}`,
+      amount: investmentAmount,
+      date: new Date().toLocaleDateString(),
+      estimatedValue: Math.round(estimatedValue)
+    };
+    
+    setManualInvestments(prev => [...prev, newInvestment]);
+    setAmount(""); // Clear the form
+  };
 
   /* ---------------- UI states ---------------- */
   if (loading) return <Center>Loading…</Center>;
@@ -443,11 +474,13 @@ function Dashboard() {
             <div className="w-full md:w-1/4">
               <label className="text-sm font-medium">Amount (USD)</label>
               <Input
-                type="number"
-                min="1"
-                placeholder="100"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                placeholder="$100"
+                value={amount ? `$${amount}` : ""}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, "");
+                  setAmount(value);
+                }}
               />
             </div>
             <div className="w-full md:w-1/4">
@@ -462,8 +495,43 @@ function Dashboard() {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="w-full md:w-auto">Invest Now</Button>
+            <div className="flex items-end">
+              <Button 
+                className="w-full md:w-auto"
+                disabled={!amount}
+                onClick={handleInvestNow}
+              >
+                Invest Now
+              </Button>
+            </div>
           </div>
+          
+          {/* Manual Investments Table */}
+          {manualInvestments.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-md font-medium mb-3">Your Manual Investments</h3>
+              <div className="bg-card rounded-lg shadow-sm overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left p-3 text-sm font-medium">Amount Invested</th>
+                      <th className="text-left p-3 text-sm font-medium">Date Invested</th>
+                      <th className="text-left p-3 text-sm font-medium">Estimated Value at Goal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {manualInvestments.map((investment) => (
+                      <tr key={investment.id} className="border-t">
+                        <td className="p-3">{fmt(investment.amount)}</td>
+                        <td className="p-3">{investment.date}</td>
+                        <td className="p-3">{fmt(investment.estimatedValue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </section>
       </main>
 
