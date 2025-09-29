@@ -382,35 +382,93 @@ function Dashboard() {
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={calc.rows}>
+              <LineChart 
+                data={calc.rows}
+                margin={{ top: 20, right: 20, bottom: 40, left: 20 }}
+              >
                 <XAxis
                   dataKey="year"
-                  label={{ value: "Years", offset: -5, position: "insideBottom" }}
+                  type="number"
+                  scale="linear"
+                  domain={[0, Math.ceil((grid.goal_age || 18) / 5) * 5]}
+                  ticks={Array.from({ length: Math.ceil((grid.goal_age || 18) / 5) + 1 }, (_, i) => i * 5)}
+                  label={{ 
+                    value: "Years", 
+                    position: "insideBottom", 
+                    offset: -10,
+                    style: { textAnchor: 'middle', fontSize: '12px', fill: '#6b7280' }
+                  }}
+                  tick={{ fontSize: 12, fill: '#6b7280' }}
+                  axisLine={{ stroke: '#e5e7eb', strokeWidth: 1 }}
+                  tickLine={{ stroke: '#e5e7eb', strokeWidth: 1 }}
                 />
                 <YAxis
                   tickFormatter={(v) => `$${v / 1000}K`}
                   domain={[0, (v: number) => Math.max(v, grid.goal_amount / 100)]}
+                  tick={{ fontSize: 12, fill: '#6b7280' }}
+                  axisLine={{ stroke: '#e5e7eb', strokeWidth: 1 }}
+                  tickLine={{ stroke: '#e5e7eb', strokeWidth: 1 }}
                 />
-                <Tooltip formatter={(v: number) => fmt(v)} />
-                <Legend />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0]?.payload;
+                      return (
+                        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+                          <p className="font-medium text-gray-900 mb-2">Year {label}</p>
+                          <div className="space-y-1">
+                            <p className="text-sm">
+                              <span className="font-medium text-blue-600">Principal:</span> {fmt(data?.invested || 0)}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium text-green-600">Interest:</span> {fmt(data?.interest || 0)}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium text-gray-900">Estimated Value:</span> {fmt(data?.total || 0)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="line"
+                />
                 <Line
                   dataKey="invested"
                   name="Principal"
-                  strokeWidth={2}
+                  stroke="#3b82f6"
+                  strokeWidth={3}
                   dot={false}
+                  activeDot={{ r: 6, fill: '#3b82f6' }}
+                />
+                <Line
+                  dataKey="interest"
+                  name="Interest"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#10b981' }}
                 />
                 <Line
                   dataKey="total"
-                  name="Interest"
-                  strokeWidth={2}
+                  name="Estimated Value"
+                  stroke="#6366f1"
+                  strokeWidth={3}
                   dot={false}
+                  activeDot={{ r: 6, fill: '#6366f1' }}
                 />
                 <Line
                   dataKey="goal"
                   name="Goal"
-                  strokeDasharray="3 3"
-                  strokeWidth={1.5}
+                  stroke="#f59e0b"
+                  strokeDasharray="8 4"
+                  strokeWidth={2.5}
                   dot={false}
+                  activeDot={{ r: 6, fill: '#f59e0b' }}
                 />
               </LineChart>
             </ResponsiveContainer>
