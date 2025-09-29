@@ -436,12 +436,13 @@ export default function ManageSchedulePage() {
               <div>
                 <label className="text-sm font-medium">Amount (USD)</label>
                 <Input
-                  type="number"
-                  min="1"
-                  value={form.amount}
-                  onChange={(e) =>
-                    setForm({ ...form, amount: e.target.value })
-                  }
+                  type="text"
+                  placeholder="$100"
+                  value={form.amount ? `$${form.amount}` : ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    setForm({ ...form, amount: value });
+                  }}
                 />
               </div>
               <div>
