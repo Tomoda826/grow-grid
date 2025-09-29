@@ -64,6 +64,17 @@ interface Schedule {
   status: "Active" | "Paused";
 }
 
+interface ManualInvestment {
+  id: number;
+  grid_id: string;
+  user_id: string;
+  amount_cents: number;
+  invested_at: string;
+  estimated_value_cents: number;
+  investment_pins: number;
+  interest_pins: number;
+}
+
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
@@ -113,14 +124,7 @@ function Dashboard() {
   const [method, setMethod] = useState("card1");
   
   /* manual investments */
-  const [manualInvestments, setManualInvestments] = useState<{
-    id: string;
-    amount: number;
-    date: string;
-    estimatedValue: number;
-    investmentPins: number;
-    interestPins: number;
-  }[]>([]);
+  const [manualInvestments, setManualInvestments] = useState<ManualInvestment[]>([]);
 
   /* ---------------- Fetch once on mount ---------------- */
   useEffect(() => {
@@ -142,7 +146,7 @@ function Dashboard() {
         return;
       }
 
-      const [{ data: t }, { data: s }] = await Promise.all([
+      const [{ data: t }, { data: s }, { data: m }] = await Promise.all([
         supabase
           .from("transactions")
           .select("amount_cents, invested_at")
@@ -154,11 +158,18 @@ function Dashboard() {
           .eq("grid_id", g.id)
           .eq("status", "Active")
           .returns<Schedule[]>(),
+        supabase
+          .from("manual_investments")
+          .select("id, grid_id, user_id, amount_cents, invested_at, estimated_value_cents, investment_pins, interest_pins")
+          .eq("grid_id", g.id)
+          .order("invested_at", { ascending: false })
+          .returns<ManualInvestment[]>(),
       ]);
 
       setGrid(g);
       setTxns(t ?? []);
       setSchedules(s ?? []);
+      setManualInvestments(m ?? []);
       setLoading(false);
     })();
   }, []);
@@ -168,7 +179,7 @@ function Dashboard() {
     if (!grid) return null;
 
     /* Initial dollars invested via gift + manual txns + manual investments */
-    const manualInvestTotal = manualInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+    const manualInvestTotal = manualInvestments.reduce((sum, inv) => sum + inv.amount_cents / 100, 0);
     const txnTotal = txns.reduce((sum, t) => sum + t.amount_cents / 100, 0);
     const baseBalance = txnTotal > 0 ? txnTotal : grid.current_balance / 100;
     const principal = baseBalance + manualInvestTotal;
@@ -258,11 +269,16 @@ function Dashboard() {
   }, [grid, txns, schedules, manualInvestments]);
 
   /* ---------------- Handlers ---------------- */
-  const handleInvestNow = () => {
-    if (!amount || !grid) return;
+  const handleInvestNow = async () => {
+    if (!amount || !grid || !supabase) return;
     
     const investmentAmount = Number(amount);
     if (isNaN(investmentAmount) || investmentAmount <= 0) return;
+    
+    // Get current user
+    const { data: session } = await supabase.auth.getSession();
+    const uid = session.session?.user.id;
+    if (!uid) return;
     
     // Calculate estimated value at goal date
     const yearsToGoal = (grid.goal_age ?? 18);
@@ -275,16 +291,29 @@ function Dashboard() {
     const interestEarned = estimatedValue - investmentAmount;
     const interestPins = Math.min(1000, Math.floor(interestEarned / pinValue));
     
-    const newInvestment = {
-      id: `manual-${Date.now()}`,
-      amount: investmentAmount,
-      date: new Date().toLocaleDateString(),
-      estimatedValue: Math.round(estimatedValue),
-      investmentPins,
-      interestPins
-    };
+    // Save to database
+    const { data, error } = await supabase
+      .from("manual_investments")
+      .insert([{
+        grid_id: grid.id,
+        user_id: uid,
+        amount_cents: Math.round(investmentAmount * 100),
+        estimated_value_cents: Math.round(estimatedValue * 100),
+        investment_pins: investmentPins,
+        interest_pins: interestPins
+      }])
+      .select("id, grid_id, user_id, amount_cents, invested_at, estimated_value_cents, investment_pins, interest_pins")
+      .single<ManualInvestment>();
     
-    setManualInvestments(prev => [...prev, newInvestment]);
+    if (error) {
+      console.error("Error saving manual investment:", error);
+      return;
+    }
+    
+    if (data) {
+      setManualInvestments(prev => [data, ...prev]);
+    }
+    
     setAmount(""); // Clear the form
   };
 
@@ -535,11 +564,11 @@ function Dashboard() {
                   <tbody>
                     {manualInvestments.map((investment) => (
                       <tr key={investment.id} className="border-t">
-                        <td className="p-3">{fmt(investment.amount)}</td>
-                        <td className="p-3">{investment.date}</td>
-                        <td className="p-3">{fmt(investment.estimatedValue)}</td>
-                        <td className="p-3">{investment.investmentPins}</td>
-                        <td className="p-3">{investment.interestPins}</td>
+                        <td className="p-3">{fmt(investment.amount_cents / 100)}</td>
+                        <td className="p-3">{new Date(investment.invested_at).toLocaleDateString()}</td>
+                        <td className="p-3">{fmt(investment.estimated_value_cents / 100)}</td>
+                        <td className="p-3">{investment.investment_pins}</td>
+                        <td className="p-3">{investment.interest_pins}</td>
                       </tr>
                     ))}
                   </tbody>
