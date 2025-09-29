@@ -56,6 +56,7 @@ interface Txn {
 }
 
 interface Schedule {
+  id?: string;
   amount_cents: number;
   frequency: "Monthly" | "Quarterly" | "Twice a Year" | "Yearly";
   status: string;
@@ -165,7 +166,7 @@ export default function ManageSchedulePage() {
             .returns<Txn[]>(),
           supabase
             .from("schedules")
-            .select("amount_cents, frequency, status")
+            .select("id, amount_cents, frequency, status")
             .eq("grid_id", g.id)
             .eq("status", "Active")
             .returns<Schedule[]>(),
@@ -279,7 +280,8 @@ export default function ManageSchedulePage() {
       setRows([...rows, data]);
       // Update schedules state for banner calculation
       if (data.status === "Active") {
-        setSchedules([...schedules, {
+        setSchedules(prev => [...prev, {
+          id: data.id,
           amount_cents: data.amount_cents,
           frequency: data.frequency,
           status: data.status
@@ -303,17 +305,16 @@ export default function ManageSchedulePage() {
     );
     // Update schedules state for banner calculation
     if (val) {
-      // Add to active schedules
-      setSchedules([...schedules, {
+      // Add to active schedules (reactivating)
+      setSchedules(prev => [...prev, {
+        id: row.id,
         amount_cents: row.amount_cents,
         frequency: row.frequency,
         status: "Active"
       }]);
     } else {
-      // Remove from active schedules
-      setSchedules(schedules.filter(s => 
-        !(s.amount_cents === row.amount_cents && s.frequency === row.frequency)
-      ));
+      // Remove from active schedules (pausing)
+      setSchedules(prev => prev.filter(s => s.id !== row.id));
     }
   };
 
@@ -326,9 +327,7 @@ export default function ManageSchedulePage() {
     setRows(rows.filter((r) => r.id !== row.id));
     // Update schedules state for banner calculation
     if (row.status === "Active") {
-      setSchedules(schedules.filter(s => 
-        !(s.amount_cents === row.amount_cents && s.frequency === row.frequency)
-      ));
+      setSchedules(prev => prev.filter(s => s.id !== row.id));
     }
   };
 
