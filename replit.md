@@ -12,7 +12,7 @@ Grow Grid is a Next.js application that helps families invest in a child's futur
 - **Animations**: Framer Motion for smooth UI interactions
 
 ## Recent Changes (Project Import Setup & Feature Enhancements)
-*September 28, 2025*
+*September 28-29, 2025*
 
 ### Dependencies & Environment
 - Installed all Node.js dependencies via npm install
@@ -55,11 +55,23 @@ Grow Grid is a Next.js application that helps families invest in a child's futur
 - Separated useEffect dependencies to prevent performance issues
 - Proper URL parameter handling with formatted gift code display
 
+### Latest Feature Updates
+*September 29, 2025*
+- **Enhanced Investment Scheduling**: Added monthly investment goal display on schedule page that updates in real-time when schedules are modified
+- **Dollar Formatting**: Applied consistent currency input formatting across gift creation and schedule forms
+- **One-Time Investment Feature**: Fully implemented manual investment functionality on dashboard with:
+  - Dollar-formatted amount input field
+  - Real-time investment tracking table showing amount, date, and projected value at goal
+  - Integrated calculations affecting all projections and growth charts
+- **Improved Chart Visualization**: Enhanced Projected Growth chart with cleaner Y-axis intervals, color-coded lines (blue=principal, green=interest, gold=goal), and detailed tooltips
+- **State Synchronization**: Real-time updates between investment actions and dashboard calculations
+
 ### Known Configuration Notes
 - Supabase integration is fully configured and functional with environment variables
 - Automatic claim code formatting implemented: XXXX-XXXX format with auto-dash insertion
 - TypeScript warnings exist for enhanced null safety (non-blocking)
 - Email sender configured as noreply@mygrowgrid.com
+- Manual investments stored in client state (consider backend persistence for production)
 
 ## User Preferences
 - Standard Next.js development workflow
