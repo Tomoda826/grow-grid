@@ -118,6 +118,8 @@ function Dashboard() {
     amount: number;
     date: string;
     estimatedValue: number;
+    investmentPins: number;
+    interestPins: number;
   }[]>([]);
 
   /* ---------------- Fetch once on mount ---------------- */
@@ -266,11 +268,20 @@ function Dashboard() {
     const yearsToGoal = (grid.goal_age ?? 18);
     const estimatedValue = investmentAmount * Math.pow(1 + ANNUAL, yearsToGoal);
     
+    // Calculate pins using same logic as main calculations
+    const goalUSD = grid.goal_amount / 100;
+    const pinValue = goalUSD / 1000 || 1;
+    const investmentPins = Math.min(1000, Math.floor(investmentAmount / pinValue));
+    const interestEarned = estimatedValue - investmentAmount;
+    const interestPins = Math.min(1000, Math.floor(interestEarned / pinValue));
+    
     const newInvestment = {
       id: `manual-${Date.now()}`,
       amount: investmentAmount,
       date: new Date().toLocaleDateString(),
-      estimatedValue: Math.round(estimatedValue)
+      estimatedValue: Math.round(estimatedValue),
+      investmentPins,
+      interestPins
     };
     
     setManualInvestments(prev => [...prev, newInvestment]);
@@ -517,6 +528,8 @@ function Dashboard() {
                       <th className="text-left p-3 text-sm font-medium">Amount Invested</th>
                       <th className="text-left p-3 text-sm font-medium">Date Invested</th>
                       <th className="text-left p-3 text-sm font-medium">Estimated Value at Goal</th>
+                      <th className="text-left p-3 text-sm font-medium">Investment Pins</th>
+                      <th className="text-left p-3 text-sm font-medium">Interest Pins</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -525,6 +538,8 @@ function Dashboard() {
                         <td className="p-3">{fmt(investment.amount)}</td>
                         <td className="p-3">{investment.date}</td>
                         <td className="p-3">{fmt(investment.estimatedValue)}</td>
+                        <td className="p-3">{investment.investmentPins}</td>
+                        <td className="p-3">{investment.interestPins}</td>
                       </tr>
                     ))}
                   </tbody>
