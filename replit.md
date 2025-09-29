@@ -61,7 +61,8 @@ Grow Grid is a Next.js application that helps families invest in a child's futur
 - **Dollar Formatting**: Applied consistent currency input formatting across gift creation and schedule forms
 - **One-Time Investment Feature**: Fully implemented manual investment functionality on dashboard with:
   - Dollar-formatted amount input field
-  - Real-time investment tracking table showing amount, date, and projected value at goal
+  - Real-time investment tracking table showing amount, date, projected value, investment pins, and interest pins
+  - Database persistence - manual investments now save permanently and persist across sessions
   - Integrated calculations affecting all projections and growth charts
 - **Improved Chart Visualization**: Enhanced Projected Growth chart with cleaner Y-axis intervals, color-coded lines (blue=principal, green=interest, gold=goal), and detailed tooltips
 - **State Synchronization**: Real-time updates between investment actions and dashboard calculations
@@ -71,7 +72,7 @@ Grow Grid is a Next.js application that helps families invest in a child's futur
 - Automatic claim code formatting implemented: XXXX-XXXX format with auto-dash insertion
 - TypeScript warnings exist for enhanced null safety (non-blocking)
 - Email sender configured as noreply@mygrowgrid.com
-- Manual investments stored in client state (consider backend persistence for production)
+- Manual investments fully persisted in database with proper Supabase integration
 
 ## User Preferences
 - Standard Next.js development workflow
