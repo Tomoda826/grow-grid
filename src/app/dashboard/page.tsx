@@ -389,25 +389,44 @@ function Dashboard() {
                 />
                 <YAxis
                   tickFormatter={(v) => `$${v / 1000}K`}
-                  domain={[0, (v: number) => Math.max(v, grid.goal_amount / 100)]}
+                  domain={[0, 'dataMax']}
+                  interval="preserveStartEnd"
                 />
-                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Tooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white p-3 border rounded-lg shadow-lg">
+                          <p className="font-medium">{`Year ${label}`}</p>
+                          <p className="text-blue-600">{`Principal: ${fmt(data.invested)}`}</p>
+                          <p className="text-green-600">{`Interest: ${fmt(data.interest)}`}</p>
+                          <p className="text-gray-700">{`Estimated Value: ${fmt(data.total)}`}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
                 <Legend />
                 <Line
                   dataKey="invested"
                   name="Principal"
+                  stroke="#3b82f6"
                   strokeWidth={2}
                   dot={false}
                 />
                 <Line
                   dataKey="total"
                   name="Interest"
+                  stroke="#22c55e"
                   strokeWidth={2}
                   dot={false}
                 />
                 <Line
                   dataKey="goal"
                   name="Goal"
+                  stroke="#eab308"
                   strokeDasharray="3 3"
                   strokeWidth={1.5}
                   dot={false}
