@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sgMail from '@sendgrid/mail';
+import sgMail, { MailDataRequired } from '@sendgrid/mail';
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
@@ -67,12 +67,12 @@ export async function POST(request: NextRequest) {
     };
 
     // SendGrid message with template
-    const msg = {
+    const msg: MailDataRequired = {
       to: recipientEmail,
       from: 'noreply@mygrowgrid.com',
       templateId: process.env.SENDGRID_GIFT_TEMPLATE_ID || 'd-d56b2e33d71845f1af2b9dae3897253f',
       dynamicTemplateData: templateData
-    } as any; // Type assertion for SendGrid template
+    };
 
     await sgMail.send(msg);
 
@@ -81,11 +81,12 @@ export async function POST(request: NextRequest) {
       message: 'Gift notification sent successfully' 
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const sendGridError = error as { response?: { body?: unknown }; message?: string };
     console.error('SendGrid Template Error:', error);
-    console.error('Error details:', error.response?.body || error.message);
+    console.error('Error details:', sendGridError.response?.body || sendGridError.message);
     return NextResponse.json(
-      { error: 'Failed to send gift notification', details: error.response?.body || error.message },
+      { error: 'Failed to send gift notification', details: sendGridError.response?.body || sendGridError.message },
       { status: 500 }
     );
   }

@@ -421,7 +421,7 @@ export default function GiftWizard() {
             onKeyDown={(e) => handleKeyDown(e, () => setStep(alreadyLoggedIn === true ? "review" : "account"), !!(form.childName && form.recipientEmail))}
           />
           <p className="text-sm text-gray-600 mt-2">
-            We'll send gift details to this email so they can claim it.
+            We&apos;ll send gift details to this email so they can claim it.
           </p>
           <Button
             className="mt-4"

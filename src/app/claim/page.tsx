@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Confetti from "react-confetti";
@@ -40,7 +40,7 @@ type GiftRow = {
 };
 
 /* ------------ component ------------ */
-export default function ClaimGridPage() {
+function ClaimGridPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -541,5 +541,14 @@ function PreviewBox({ label, value }: { label: string; value: string }) {
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <p className="font-semibold">{value}</p>
     </div>
+  );
+}
+
+/* Suspense wrapper for useSearchParams */
+export default function ClaimGridPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ClaimGridPageContent />
+    </Suspense>
   );
 }
